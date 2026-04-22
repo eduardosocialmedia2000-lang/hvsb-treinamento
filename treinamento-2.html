@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Treinamento 2 — Triagem e Qualificação | HVSB</title>
+<link rel="icon" type="image/svg+xml" href="https://static.wixstatic.com/shapes/167cba_c76d768559744f90b364541c6ff3aa51.svg">
+<link rel="shortcut icon" href="https://static.wixstatic.com/shapes/167cba_c76d768559744f90b364541c6ff3aa51.svg">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:    #002A42;
+    --teal:    #001e30;
+    --green:   #1C75BC;
+    --green-l: #116DFF;
+    --orange:  #97D8F7;
+    --red:     #E05C5C;
+    --yellow:  #F5A623;
+    --emerald: #25C97A;
+    --light:   #F0F6FF;
+    --white:   #FFFFFF;
+    --gray:    #6B7280;
+    --dark:    #001629;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    font-family: 'Inter', sans-serif;
+    background: #001629;
+    overflow: hidden;
+  }
+
+  /* ── DECK ── */
+  #deck {
+    width: 100vw; height: 100vh;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .slide {
+    position: absolute;
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 48px 80px;
+    opacity: 0;
+    transform: translateX(60px);
+    transition: opacity .45s ease, transform .45s ease;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit   { opacity: 0; transform: translateX(-60px); }
+
+  /* ── PROGRESS BAR ── */
+  #progress-bar {
+    position: fixed; top: 0; left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #116DFF, #97D8F7);
+    transition: width .4s ease;
+    z-index: 100;
+  }
+
+  /* ── SLIDE NUMBER ── */
+  #slide-num {
+    position: fixed; bottom: 24px; right: 32px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px; font-weight: 500;
+    color: rgba(255,255,255,.4);
+    z-index: 100; letter-spacing: .05em;
+  }
+
+  /* ── NAV ARROWS ── */
+  .nav-btn {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    width: 48px; height: 48px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 50%;
+    color: rgba(255,255,255,.6); font-size: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; transition: background .2s, color .2s;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,.18); color: #fff; }
+  #btn-prev { left: 20px; }
+  #btn-next { right: 20px; }
+
+  /* ── SLIDE THEMES ── */
+  .s-cover {
+    background: linear-gradient(150deg, #001e30 0%, #002A42 60%, #001629 100%);
+    text-align: center;
+  }
+  .s-cover .paw { font-size: 56px; margin-bottom: 24px; opacity: .7; }
+  .s-cover .tag {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px; font-weight: 500;
+    letter-spacing: .22em; text-transform: uppercase;
+    color: #97D8F7; margin-bottom: 16px;
+  }
+  .s-cover h1 {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(38px, 5.5vw, 68px);
+    font-weight: 700; color: var(--white);
+    line-height: 1.05; margin-bottom: 16px;
+    letter-spacing: .02em; text-transform: uppercase;
+  }
+  .s-cover h1 span { color: #116DFF; }
+  .s-cover .sub { font-size: 17px; color: rgba(255,255,255,.45); font-weight: 400; letter-spacing: .04em; max-width: 600px; margin: 0 auto; line-height: 1.5; }
+  .deco-circle { position: absolute; border-radius: 50%; background: rgba(17,109,255,.1); pointer-events: none; }
+  .dc1 { width: 500px; height: 500px; top: -150px; right: -150px; }
+  .dc2 { width: 300px; height: 300px; bottom: -80px; left: -80px; }
+
+  .s-light { background: #F0F6FF; }
+  .s-light h2 {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(24px, 3.2vw, 40px);
+    font-weight: 700; color: #002A42;
+    margin-bottom: 36px; text-align: center;
+    text-transform: uppercase; letter-spacing: .03em;
+  }
+  .s-light h2 .accent { color: #116DFF; }
+
+  .s-dark { background: #002A42; }
+  .s-dark h2 {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(22px, 2.8vw, 38px);
+    font-weight: 700; color: var(--white);
+    margin-bottom: 36px; text-align: center;
+    text-transform: uppercase; letter-spacing: .03em;
+  }
+  .s-dark h2 .accent { color: #116DFF; }
+
+  .s-teal { background: linear-gradient(145deg, #001629 0%, #002A42 100%); }
+  .s-teal h2 {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(22px, 2.8vw, 38px);
+    font-weight: 700; color: var(--white);
+    margin-bottom: 36px; text-align: center;
+    text-transform: uppercase; letter-spacing: .03em;
+  }
+  .s-teal h2 .accent { color: #97D8F7; }
+
+  .s-closing {
+    background: linear-gradient(150deg, #001629 0%, #002A42 60%, #001e30 100%);
+    text-align: center;
+  }
+
+  /* ── COMPONENTS ── */
+
+  /* HIGHLIGHT BOX */
+  .highlight-box {
+    background: #116DFF; border-radius: 16px;
+    padding: 20px 32px; color: #fff;
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(15px, 1.7vw, 21px);
+    font-weight: 500; text-align: center;
+    max-width: 720px; margin-top: 28px; letter-spacing: .02em;
+  }
+  .highlight-box.navy   { background: #001629; }
+  .highlight-box.teal   { background: #001e30; border: 1px solid rgba(151,216,247,.2); }
+  .highlight-box.orange { background: #1C75BC; }
+
+  /* ICON LIST */
+  .icon-list { list-style: none; width: 100%; max-width: 720px; display: flex; flex-direction: column; gap: 16px; }
+  .icon-list li { display: flex; align-items: flex-start; gap: 16px; font-size: 16px; color: var(--dark); line-height: 1.5; }
+  .icon-list li .ic {
+    width: 36px; height: 36px; flex-shrink: 0;
+    background: #116DFF; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; color: #fff;
+  }
+  .s-dark .icon-list li, .s-teal .icon-list li { color: rgba(255,255,255,.85); }
+  .s-dark .icon-list li .ic, .s-teal .icon-list li .ic { background: rgba(17,109,255,.3); }
+
+  /* CARDS GRID */
+  .cards-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(190px,1fr));
+    gap: 18px; width: 100%; max-width: 900px;
+  }
+  .card {
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 16px; padding: 22px 18px;
+    display: flex; flex-direction: column; gap: 8px; text-align: center;
+  }
+  .card .c-icon { font-size: 28px; }
+  .card .c-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px; font-weight: 600; color: #97D8F7;
+    text-transform: uppercase; letter-spacing: .05em;
+  }
+  .card .c-desc { font-size: 13px; color: rgba(255,255,255,.6); line-height: 1.5; }
+  .s-light .card { background: var(--white); border: 1px solid #e5e7eb; box-shadow: 0 4px 20px rgba(0,0,0,.06); }
+  .s-light .card .c-title { color: #116DFF; }
+  .s-light .card .c-desc { color: var(--gray); }
+
+  /* RECAP CHECKS */
+  .recap-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
+    gap: 14px; width: 100%; max-width: 860px;
+  }
+  .recap-item {
+    background: var(--white); border-radius: 14px;
+    padding: 16px 20px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+  }
+  .recap-check {
+    width: 32px; height: 32px; flex-shrink: 0;
+    background: #116DFF; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: #fff;
+  }
+  .recap-text { font-size: 14px; color: #002A42; font-weight: 500; line-height: 1.4; }
+
+  /* 5 PERGUNTAS */
+  .q-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 16px; width: 100%; max-width: 900px;
+  }
+  .q-card {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 14px; padding: 18px 20px;
+    display: flex; gap: 14px;
+  }
+  .q-num {
+    width: 36px; height: 36px; flex-shrink: 0;
+    background: #116DFF; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Oswald', sans-serif;
+    font-size: 16px; font-weight: 700; color: #fff;
+  }
+  .q-body { display: flex; flex-direction: column; gap: 6px; }
+  .q-title { font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 700; color: #fff; }
+  .q-how { font-size: 13px; color: #97D8F7; line-height: 1.5; font-style: italic; }
+  .q-why { font-size: 12px; color: rgba(255,255,255,.45); line-height: 1.4; }
+  .q-dont { font-size: 12px; color: var(--red); line-height: 1.4; }
+
+  /* URGÊNCIA 3 COLS */
+  .urg-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px; width: 100%; max-width: 960px;
+  }
+  .urg-card {
+    border-radius: 16px; padding: 24px 20px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .urg-card.red    { background: rgba(224,92,92,.12);   border: 1px solid rgba(224,92,92,.35); }
+  .urg-card.yellow { background: rgba(245,166,35,.1);   border: 1px solid rgba(245,166,35,.35); }
+  .urg-card.green  { background: rgba(37,201,122,.1);   border: 1px solid rgba(37,201,122,.35); }
+  .urg-badge {
+    font-family: 'Oswald', sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: .12em; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
+  }
+  .red    .urg-badge { background: rgba(224,92,92,.2);   color: var(--red); }
+  .yellow .urg-badge { background: rgba(245,166,35,.2);  color: var(--yellow); }
+  .green  .urg-badge { background: rgba(37,201,122,.2);  color: var(--emerald); }
+  .urg-title { font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 700; color: #fff; }
+  .urg-signs { font-size: 12px; color: rgba(255,255,255,.55); line-height: 1.6; }
+  .urg-action {
+    font-size: 13px; line-height: 1.5;
+    padding: 10px 14px; border-radius: 10px;
+    font-style: italic;
+  }
+  .red    .urg-action { background: rgba(224,92,92,.1);  color: rgba(255,255,255,.8); }
+  .yellow .urg-action { background: rgba(245,166,35,.1); color: rgba(255,255,255,.8); }
+  .green  .urg-action { background: rgba(37,201,122,.1); color: rgba(255,255,255,.8); }
+
+  /* MAPA TABLE */
+  .mapa-wrap { width: 100%; max-width: 880px; overflow: hidden; }
+  .mapa-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .mapa-table thead th {
+    font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 700;
+    letter-spacing: .1em; text-transform: uppercase;
+    color: rgba(255,255,255,.4); padding: 10px 16px; text-align: left;
+    border-bottom: 2px solid rgba(255,255,255,.08);
+  }
+  .mapa-table tbody tr:hover { background: rgba(255,255,255,.03); }
+  .mapa-table tbody td { padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,.05); }
+  .mapa-table tbody td:first-child { color: rgba(255,255,255,.7); line-height: 1.4; }
+  .mapa-table tbody td:nth-child(2) { color: #97D8F7; font-family: 'Oswald', sans-serif; font-size: 13px; letter-spacing: .04em; }
+  .mapa-table tbody td:nth-child(3) { color: rgba(255,255,255,.5); }
+  .mapa-note {
+    margin-top: 14px; font-size: 12px; color: rgba(255,255,255,.35);
+    background: rgba(245,166,35,.08); border: 1px solid rgba(245,166,35,.2);
+    border-radius: 8px; padding: 10px 16px; line-height: 1.5;
+  }
+
+  /* WA vs PRESENCIAL */
+  .channel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; width: 100%; max-width: 900px; }
+  .channel-col {
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 16px; padding: 24px 22px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .channel-title {
+    font-family: 'Oswald', sans-serif; font-size: 16px; font-weight: 700;
+    color: #97D8F7; margin-bottom: 4px; letter-spacing: .03em;
+  }
+  .channel-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .channel-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 13.5px; color: rgba(255,255,255,.7); line-height: 1.5; }
+  .channel-list li::before { content: "→"; color: #116DFF; flex-shrink: 0; margin-top: 1px; }
+
+  /* QUANDO NÃO TRIAR */
+  .skip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; width: 100%; max-width: 880px; }
+  .skip-card {
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 14px; padding: 20px 22px;
+    display: flex; gap: 14px;
+  }
+  .skip-num {
+    width: 32px; height: 32px; flex-shrink: 0;
+    background: rgba(17,109,255,.2); border: 1px solid rgba(17,109,255,.4);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 700; color: #97D8F7;
+  }
+  .skip-body { display: flex; flex-direction: column; gap: 5px; }
+  .skip-title { font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 700; color: #fff; }
+  .skip-ex { font-size: 13px; color: rgba(255,255,255,.5); line-height: 1.5; }
+  .skip-ex em { color: #97D8F7; font-style: italic; }
+
+  /* ERROS ❌ ✅ */
+  .errors-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; width: 100%; max-width: 880px; }
+  .err-card {
+    background: rgba(224,92,92,.07);
+    border: 1px solid rgba(224,92,92,.22);
+    border-radius: 14px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .err-label { font-family: 'Oswald', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--red); }
+  .err-title { font-family: 'Oswald', sans-serif; font-size: 16px; font-weight: 700; color: #fff; }
+  .err-desc { font-size: 13px; color: rgba(255,255,255,.55); line-height: 1.5; }
+  .err-fix {
+    background: rgba(17,109,255,.1); border: 1px solid rgba(17,109,255,.25);
+    border-radius: 8px; padding: 8px 12px;
+    font-size: 13px; color: #97D8F7; line-height: 1.5;
+  }
+  .err-fix::before { content: "✅ "; }
+
+  /* WHATSAPP MOCK */
+  .wapp-screen {
+    background: #0b141a; border-radius: 16px;
+    padding: 20px 24px; display: flex; flex-direction: column; gap: 10px;
+    border: 1px solid rgba(255,255,255,.08); width: 100%; max-width: 740px;
+  }
+  .wapp-screen.good-screen { border-color: rgba(37,201,122,.3); }
+  .wapp-screen.bad-screen  { border-color: rgba(224,92,92,.3); }
+  .wapp-label {
+    font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 700;
+    letter-spacing: .12em; text-transform: uppercase; margin-bottom: 6px;
+  }
+  .wapp-label.good { color: var(--emerald); }
+  .wapp-label.bad  { color: var(--red); }
+  .bubble {
+    max-width: 78%; padding: 10px 14px;
+    border-radius: 12px; font-size: 13.5px; line-height: 1.6;
+  }
+  .bubble.them { background: #1f2c34; color: rgba(255,255,255,.85); align-self: flex-start; border-bottom-left-radius: 4px; }
+  .bubble.us   { background: #1C75BC; color: rgba(255,255,255,.95); align-self: flex-end; border-bottom-right-radius: 4px; }
+  .bubble .sender { font-size: 11px; font-weight: 600; color: #97D8F7; margin-bottom: 4px; }
+  .bubble.them .sender { color: #aaa; }
+  .bubble .pq { font-size: 11px; color: rgba(255,255,255,.4); font-style: italic; margin-top: 4px; }
+  .wapp-result {
+    font-size: 13px; font-style: italic; padding: 8px 14px; border-radius: 8px; margin-top: 4px; align-self: flex-start;
+  }
+  .wapp-result.good { background: rgba(37,201,122,.12); color: var(--emerald); }
+  .wapp-result.bad  { background: rgba(224,92,92,.12);  color: var(--red); }
+
+  /* EXERCÍCIO */
+  .ex-grid { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 680px; }
+  .ex-item {
+    display: flex; gap: 16px; align-items: flex-start;
+    background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px; padding: 16px 20px;
+  }
+  .ex-q {
+    width: 32px; height: 32px; flex-shrink: 0;
+    background: rgba(17,109,255,.15); border: 2px solid #116DFF;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 700; color: #97D8F7;
+  }
+  .ex-text { font-size: 14px; color: rgba(255,255,255,.8); line-height: 1.5; }
+  .ex-text strong { color: #fff; font-family: 'Oswald', sans-serif; }
+
+  /* CLOSING */
+  .s-closing .main-quote {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(26px, 3.8vw, 50px);
+    font-weight: 800; color: var(--white);
+    line-height: 1.2; max-width: 700px; margin-bottom: 36px;
+  }
+  .s-closing .main-quote span { color: #116DFF; }
+  .closing-list {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+    max-width: 720px; margin-bottom: 36px;
+  }
+  .cl-tag {
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 30px; padding: 8px 20px;
+    font-size: 14px; color: rgba(255,255,255,.65);
+  }
+  .next-badge {
+    background: #116DFF; border-radius: 30px; padding: 10px 28px;
+    font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 600;
+    color: #fff; letter-spacing: .02em;
+  }
+
+  /* PRINCÍPIO GRANDE */
+  .big-principle {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(28px, 4vw, 54px);
+    font-weight: 800; color: #fff;
+    text-align: center; line-height: 1.15;
+    max-width: 800px; margin-top: 32px;
+  }
+  .big-principle span { color: #116DFF; }
+
+  /* NOTE BOX */
+  .note-box {
+    margin-top: 20px; width: 100%; max-width: 720px;
+    background: rgba(245,166,35,.08); border: 1px solid rgba(245,166,35,.25);
+    border-radius: 12px; padding: 14px 20px;
+    font-size: 13px; color: rgba(255,255,255,.65); line-height: 1.6;
+  }
+  .note-box strong { color: var(--yellow); }
+
+  @media (max-width: 900px) {
+    .slide { padding: 28px 20px; }
+    .urg-grid, .q-grid, .channel-grid, .skip-grid, .errors-grid { grid-template-columns: 1fr; }
+    .recap-grid { grid-template-columns: 1fr; }
+    #btn-prev, #btn-next { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="slide-num"></div>
+
+<button class="nav-btn" id="btn-prev">&#8592;</button>
+<button class="nav-btn" id="btn-next">&#8594;</button>
+
+<div id="deck">
+
+  <!-- ═══ SLIDE 1 — CAPA ═══ -->
+  <section class="slide s-cover active" data-slide="1">
+    <div class="deco-circle dc1"></div>
+    <div class="deco-circle dc2"></div>
+    <div class="paw">🐾</div>
+    <div class="tag">Sigma × Hospital Veterinário São Bernardo</div>
+    <h1>Treinamento 2<br><span>Triagem e Qualificação</span></h1>
+    <p class="sub">Como entender o caso do tutor em poucas perguntas<br>e direcionar pro caminho certo</p>
+    <p style="margin-top:40px;font-size:13px;color:rgba(255,255,255,.25)">Use as setas, teclas ← → ou espaço para avançar</p>
+  </section>
+
+  <!-- ═══ SLIDE 2 — RECAP T1 ═══ -->
+  <section class="slide s-light" data-slide="2">
+    <h2>Recapitulando o <span class="accent">Treinamento 1</span></h2>
+    <div class="recap-grid">
+      <div class="recap-item">
+        <div class="recap-check">✅</div>
+        <div class="recap-text">Atendimento influencia diretamente o faturamento</div>
+      </div>
+      <div class="recap-item">
+        <div class="recap-check">✅</div>
+        <div class="recap-text">Responder ≠ Conduzir — a recepção precisa assumir a conversa</div>
+      </div>
+      <div class="recap-item">
+        <div class="recap-check">✅</div>
+        <div class="recap-text">Abertura padrão humanizada — substituir "em que posso ajudar?"</div>
+      </div>
+      <div class="recap-item">
+        <div class="recap-check">✅</div>
+        <div class="recap-text">Antes do preço: entender a situação do pet</div>
+      </div>
+      <div class="recap-item">
+        <div class="recap-check">✅</div>
+        <div class="recap-text">Toda conversa termina com uma próxima ação definida</div>
+      </div>
+    </div>
+    <div class="highlight-box" style="margin-top:28px;font-size:16px">
+      Hoje vamos aprofundar no segundo passo: antes de conduzir, a gente precisa <strong>ENTENDER</strong>.
+    </div>
+  </section>
+
+  <!-- ═══ SLIDE 3 — POR QUE TRIAR? ═══ -->
+  <section class="slide s-dark" data-slide="3">
+    <h2>Triagem não é <span class="accent">interrogatório</span>. É direcionamento.</h2>
+    <ul class="icon-list">
+      <li><div class="ic">🎲</div>Sem triagem, a recepção vira um <strong>"jogo de adivinhação"</strong></li>
+      <li><div class="ic">🔀</div>Manda pro clínico geral quando era caso de especialista</li>
+      <li><div class="ic">💸</div>Dá preço de consulta (R$190) quando o caso era avaliação cirúrgica (R$70)</li>
+      <li><div class="ic">😤</div>O tutor repete a mesma história várias vezes e se frustra</li>
+    </ul>
+    <div class="highlight-box" style="margin-top:24px">
+      O HVSB tem ~20 veterinários e diversas especialidades. A triagem garante que o tutor chegue no profissional <strong>CERTO de primeira</strong> — sem retrabalho, sem reagendamento.
+    </div>
+  </section>
+
+  <!-- ═══ SLIDE 4 — PRINCÍPIO CENTRAL ═══ -->
+  <section class="slide s-teal" data-slide="4">
+    <p class="big-principle">Poucas perguntas <span>certas</span><br>superam muitas perguntas erradas.</p>
+    <div class="highlight-box teal" style="max-width:600px">
+      As 5 perguntas a seguir <strong>não são um formulário</strong>.<br>
+      São encaixadas naturalmente na conversa — e adaptadas ao tutor que está na sua frente.
+    </div>
+  </section>
+
+  <!-- ═══ SLIDE 5 — PERGUNTAS 1 E 2 ═══ -->
+  <section class="slide s-dark" data-slide="5">
+    <h2>As <span class="accent">5 perguntas</span> essenciais — parte 1</h2>
+    <div class="q-grid">
+      <div class="q-card">
+        <div class="q-num">1</div>
+        <div class="q-body">
+          <div class="q-title">🐶 Nome e espécie do pet</div>
+          <div class="q-how">"Me conta, qual o nome do seu pet? É cãozinho ou gatinho?"</div>
+          <div class="q-why">Personaliza a conversa, gera vínculo imediato</div>
+          <div class="q-dont">❌ Não: "Informe o nome e a espécie do animal"</div>
+        </div>
+      </div>
+      <div class="q-card">
+        <div class="q-num">2</div>
+        <div class="q-body">
+          <div class="q-title">🩺 O que está acontecendo?</div>
+          <div class="q-how">"Me conta o que está acontecendo com o [nome do pet]"</div>
+          <div class="q-why">Direciona pro serviço e especialista certo</div>
+          <div class="q-dont">❌ Não: "Qual o motivo do contato?"</div>
+        </div>
+      </div>
+    </div>
+    <div class="note-box"><strong>Lembre:</strong> ouça o tutor primeiro. Se ele já trouxe uma das informações espontaneamente, não pergunte de novo.</div>
+  </section>
+
+  <!-- ═══ SLIDE 6 — PERGUNTAS 3 E 4 ═══ -->
+  <section class="slide s-dark" data-slide="6">
+    <h2>As <span class="accent">5 perguntas</span> essenciais — parte 2</h2>
+    <div class="q-grid">
+      <div class="q-card">
+        <div class="q-num">3</div>
+        <div class="q-body">
+          <div class="q-title">⏱ Há quanto tempo?</div>
+          <div class="q-how">"Entendi, e há quanto tempo a [nome] está assim?"</div>
+          <div class="q-why">Diferencia urgência de crônico — muda tudo no direcionamento</div>
+          <div class="q-dont">❌ Não: "Data de início dos sintomas?"</div>
+        </div>
+      </div>
+      <div class="q-card">
+        <div class="q-num">4</div>
+        <div class="q-body">
+          <div class="q-title">🔎 Já passou por outro veterinário?</div>
+          <div class="q-how">"Ela já chegou a ser avaliada por outro veterinário sobre isso?"</div>
+          <div class="q-why">Revela o estágio do caso e o nível de frustração do tutor</div>
+          <div class="q-dont">❌ Nunca pule essa. Ela é ouro — mostra se o tutor já gastou sem resultado.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SLIDE 7 — PERGUNTA 5 ═══ -->
+  <section class="slide s-dark" data-slide="7">
+    <h2>A <span class="accent">5ª pergunta</span> que muda o tom inteiro</h2>
+    <div class="q-card" style="max-width:640px;margin-bottom:20px">
+      <div class="q-num">5</div>
+      <div class="q-body">
+        <div class="q-title">👤 É a primeira vez aqui conosco?</div>
+        <div class="q-how">"Você já é cliente aqui do São Bernardo ou seria a primeira vez?"</div>
+        <div class="q-why">Muda completamente o tom. Cliente novo precisa de acolhimento e contexto. Cliente antigo precisa de objetividade e agilidade.</div>
+        <div class="q-dont">❌ Não: tratar cliente antigo como se fosse novo — ele fica irritado.</div>
+      </div>
+    </div>
+    <div class="highlight-box" style="max-width:660px">
+      Adaptação ao perfil: o público do HVSB tende a ser mais direto. Se o tutor já trouxe as informações, pergunte só o que falta.
+    </div>
+  </section>
+
+  <!-- ═══ SLIDE 8 — 3 NÍVEIS DE URGÊNCIA ═══ -->
+  <section class="slide s-teal" data-slide="8">
+    <h2>3 Níveis. <span class="accent">3 Posturas Diferentes.</span></h2>
+    <div class="urg-grid">
+      <div class="urg-card red">
+        <div class="urg-badge">🔴 Urgência Real</div>
+        <div class="urg-title">Resposta IMEDIATA</div>
+        <div class="urg-signs">Convulsão · sangramento ativo · dificuldade respiratória · trauma · intoxicação · desmaio · piora súbita</div>
+        <div class="urg-action">"Tragam o [nome] agora. Estamos aqui 24h. Quando chegarem, falem que é emergência."</div>
+      </div>
+      <div class="urg-card yellow">
+        <div class="urg-badge">🟡 Caso Ativo</div>
+        <div class="urg-title">Triagem Normal</div>
+        <div class="urg-signs">Coceira há dias · vômito esporádico · mancando · alteração de comportamento · não come há 2 dias</div>
+        <div class="urg-action">Fazer as 5 perguntas, direcionar pro especialista certo e oferecer 2 horários.</div>
+      </div>
+      <div class="urg-card green">
+        <div class="urg-badge">🟢 Rotina / Preventivo</div>
+        <div class="urg-title">Triagem Rápida</div>
+        <div class="urg-signs">Vacina · check-up · exame periódico · segunda opinião · retorno de tratamento</div>
+        <div class="urg-action">1–2 perguntas e agendar direto. Tutor não está em desespero.</div>
+      </div>
+    </div>
+    <div class="note-box"><strong>Na dúvida entre 🔴 e 🟡, trate como 🔴.</strong> Melhor pecar pelo excesso de cuidado.</div>
+  </section>
+
+  <!-- ═══ SLIDE 9 — MAPA DE DIRECIONAMENTO ═══ -->
+  <section class="slide s-dark" data-slide="9">
+    <h2>Sintoma → <span class="accent">Especialidade</span> → Profissional</h2>
+    <div class="mapa-wrap">
+      <table class="mapa-table">
+        <thead>
+          <tr>
+            <th>Sintoma / Queixa</th>
+            <th>Especialidade</th>
+            <th>Profissional / Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Coceira, queda de pelo, vermelhidão, feridas na pele</td><td>Dermatologia</td><td>Dr. Maicon</td></tr>
+          <tr><td>Problema nos olhos, lacrimejamento, catarata</td><td>Oftalmologia</td><td>Especialista oftalmo</td></tr>
+          <tr><td>Mancando, fratura, dor articular</td><td>Ortopedia</td><td>Dr. Leonardo</td></tr>
+          <tr><td>Vômito, diarreia, não come, dor abdominal</td><td>Clínico Geral → Gastro se crônico</td><td>Clínico de plantão</td></tr>
+          <tr><td>Tosse, cansaço, sopro cardíaco</td><td>Cardiologia</td><td>Especialista cardio</td></tr>
+          <tr><td>Caroço, tumor, emagrecimento sem causa</td><td>Oncologia</td><td>Especialista onco</td></tr>
+          <tr><td>Convulsão, paralisia, tremores</td><td>Neurologia</td><td>Especialista neuro</td></tr>
+          <tr><td>Beber muita água, emagrecer, diabetes</td><td>Endocrinologia</td><td>Especialista endócrino</td></tr>
+          <tr><td>Raio-x, ultrassom, ecocardiograma</td><td>Diagnóstico por Imagem</td><td>Dra. Ana</td></tr>
+          <tr><td>Limpeza dentária, tártaro, mau hálito</td><td>Odonto / Cirurgia Dentária</td><td>Avaliação dentária (R$70)</td></tr>
+          <tr><td>Vacina, check-up, primeiro atendimento</td><td>Clínica Geral</td><td>Clínico geral</td></tr>
+        </tbody>
+      </table>
+      <div class="mapa-note">⚠️ Validar com a Letícia: confirmar os profissionais atuais e horários. O ideal é ter esse mapa impresso no balcão.</div>
+    </div>
+  </section>
+
+  <!-- ═══ SLIDE 10 — WA vs PRESENCIAL ═══ -->
+  <section class="slide s-teal" data-slide="10">
+    <h2>WhatsApp <span class="accent">vs.</span> Presencial</h2>
+    <div class="channel-grid">
+      <div class="channel-col">
+        <div class="channel-title">📱 WhatsApp</div>
+        <ul class="channel-list">
+          <li>Tutor manda mensagens picotadas — esperar ele terminar antes de responder</li>
+          <li>Triagem precisa ser RÁPIDA — tempo de resposta importa</li>
+          <li>Mensagens curtas encadeadas, nunca um bloco de texto gigante</li>
+          <li>Se for urgência → orientar a LIGAR, não ficar trocando mensagem</li>
+          <li>Público mais velho pode mandar áudio longo — ouvir com atenção antes de responder</li>
+        </ul>
+      </div>
+      <div class="channel-col">
+        <div class="channel-title">🏥 Presencial (balcão)</div>
+        <ul class="channel-list">
+          <li>Tutor já está ali — taxa de conversão é muito maior</li>
+          <li>Triagem pode ser mais detalhada com calma</li>
+          <li>Olho no olho transmite segurança e acolhimento</li>
+          <li>Usar o nome do pet durante toda a conversa</li>
+          <li>Se tiver fila: triagem rápida + "vou te encaminhar, já já te chamamos"</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SLIDE 11 — QUANDO NÃO TRIAR ═══ -->
+  <section class="slide s-dark" data-slide="11">
+    <h2>Saber a hora de <span class="accent">pular</span> é tão importante quanto perguntar</h2>
+    <div class="skip-grid">
+      <div class="skip-card">
+        <div class="skip-num">1</div>
+        <div class="skip-body">
+          <div class="skip-title">Cliente antigo que já sabe o que quer</div>
+          <div class="skip-ex"><em>"Oi, quero remarcar a consulta do Thor com Dr. Leonardo"</em> → Não triar. Agendar direto.</div>
+        </div>
+      </div>
+      <div class="skip-card">
+        <div class="skip-num">2</div>
+        <div class="skip-body">
+          <div class="skip-title">Urgência real</div>
+          <div class="skip-ex"><em>"Meu cachorro está convulsionando"</em> → Não perguntar nada. Só: "Tragam agora, estamos 24h."</div>
+        </div>
+      </div>
+      <div class="skip-card">
+        <div class="skip-num">3</div>
+        <div class="skip-body">
+          <div class="skip-title">Tutor que já chega decidido</div>
+          <div class="skip-ex"><em>"Quero agendar dermato, pode ser quinta?"</em> → Confirmar e agendar, não interrogar.</div>
+        </div>
+      </div>
+      <div class="skip-card">
+        <div class="skip-num">4</div>
+        <div class="skip-body">
+          <div class="skip-title">Retorno de tratamento</div>
+          <div class="skip-ex">Já tem histórico. Só confirmar evolução e agendar o retorno.</div>
+        </div>
+      </div>
+    </div>
+    <div class="note-box"><strong>O público do São Bernardo tende a ser direto e objetivo.</strong> Forçar triagem quando o tutor já chegou decidido é contraproducente. Leia a situação antes de seguir o roteiro.</div>
+  </section>
+
+  <!-- ═══ SLIDE 12 — 4 ERROS ═══ -->
+  <section class="slide s-teal" data-slide="12">
+    <h2>4 erros que <span class="accent">matam</span> a triagem</h2>
+    <div class="errors-grid">
+      <div class="err-card">
+        <div class="err-label">Erro 01</div>
+        <div class="err-title">Perguntas demais</div>
+        <div class="err-desc">Tutor some porque sentiu que era burocracia, não atendimento.</div>
+        <div class="err-fix">Máximo 5 perguntas. Se o tutor já trouxe 3 informações, pergunte só o que falta.</div>
+      </div>
+      <div class="err-card">
+        <div class="err-label">Erro 02</div>
+        <div class="err-title">Não usar a informação da triagem</div>
+        <div class="err-desc">Fez 5 perguntas e encaminhou pro clínico geral genérico de qualquer jeito.</div>
+        <div class="err-fix">Cada resposta deve influenciar o próximo passo. Coceira há 3 meses? É dermato, não clínico geral.</div>
+      </div>
+      <div class="err-card">
+        <div class="err-label">Erro 03</div>
+        <div class="err-title">Copiar e colar mensagens prontas</div>
+        <div class="err-desc">Tutor percebe que é automático e perde confiança. O público mais sênior é especialmente sensível a isso.</div>
+        <div class="err-fix">Ter um roteiro na cabeça, escrever com as próprias palavras. Usar o nome do pet.</div>
+      </div>
+      <div class="err-card">
+        <div class="err-label">Erro 04</div>
+        <div class="err-title">Triar por texto na urgência</div>
+        <div class="err-desc">"Meu cachorro está sangrando" e a recepção responde "qual o nome do pet?"</div>
+        <div class="err-fix">Se é urgência, a ÚNICA resposta é: "Tragam agora. Estamos aqui 24h."</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SLIDE 13 — EXEMPLO BOM ═══ -->
+  <section class="slide s-dark" data-slide="13">
+    <h2>Na prática: triagem <span class="accent">bem feita</span></h2>
+    <div class="wapp-label good">✅ Conversa real com triagem correta</div>
+    <div class="wapp-screen good-screen">
+      <div class="bubble them"><div class="sender">Tutor</div>Oi, boa tarde. Vocês atendem cachorro com problema de pele?</div>
+      <div class="bubble us"><div class="sender">Recepção</div>Oi, boa tarde! Me conta, qual o nome do seu pet? É cãozinho ou gatinho? <span class="pq">← pergunta 1</span></div>
+      <div class="bubble them"><div class="sender">Tutor</div>É a Luna, uma golden.</div>
+      <div class="bubble us"><div class="sender">Recepção</div>Que linda! Me conta o que está acontecendo com a Luna? <span class="pq">← pergunta 2</span></div>
+      <div class="bubble them"><div class="sender">Tutor</div>Ela tá se coçando muito, já tem uns 20 dias. Tá caindo bastante pelo e apareceu umas manchas vermelhas na barriga.</div>
+      <div class="bubble us"><div class="sender">Recepção</div>Entendi. A Luna já chegou a ser avaliada por outro veterinário sobre isso? <span class="pq">← perguntas 3+4</span></div>
+      <div class="bubble them"><div class="sender">Tutor</div>Fui num vet perto de casa, deu um remédio mas não resolveu nada.</div>
+      <div class="bubble us"><div class="sender">Recepção</div>Imagino que deve ser frustrante ver ela desconfortável. Aqui temos o Dr. Maicon, especialista em dermatologia. Temos horário amanhã às 10h ou quinta às 14h — qual fica melhor?</div>
+      <div class="bubble them"><div class="sender">Tutor</div>Amanhã às 10h fica ótimo!</div>
+      <div class="wapp-result good">4 perguntas naturais. Menos de 2 min. Tutor acolhido → especialista certo → consulta agendada.</div>
+    </div>
+  </section>
+
+  <!-- ═══ SLIDE 14 — EXEMPLO RUIM ═══ -->
+  <section class="slide s-dark" data-slide="14">
+    <h2>Na prática: triagem <span class="accent">mal feita</span></h2>
+    <div class="wapp-label bad">❌ Mesmo cenário, resultado oposto</div>
+    <div class="wapp-screen bad-screen" style="max-width:480px">
+      <div class="bubble them"><div class="sender">Tutor</div>Oi, boa tarde. Vocês atendem cachorro com problema de pele?</div>
+      <div class="bubble us"><div class="sender">Recepção</div>Boa tarde. Atendemos. A consulta é R$190.</div>
+      <div class="bubble them"><div class="sender">Tutor</div>Tá, vou ver. Obrigado.</div>
+      <div class="wapp-result bad">Conversa morreu. O lead foi embora. O problema da Luna continuou sem solução.</div>
+    </div>
+    <div class="highlight-box" style="max-width:640px;margin-top:28px">
+      Mesmo lead. Mesmo problema. Resultado oposto.<br>A diferença foi a triagem.
+    </div>
+  </section>
+
+  <!-- ═══ SLIDE 15 — EXERCÍCIO ═══ -->
+  <section class="slide s-teal" data-slide="15">
+    <h2>Missão da <span class="accent">semana</span></h2>
+    <div class="ex-grid">
+      <div class="ex-item">
+        <div class="ex-q">1</div>
+        <div class="ex-text"><strong>Pegar 5 conversas reais</strong> do WhatsApp dessa semana</div>
+      </div>
+      <div class="ex-item">
+        <div class="ex-q">2</div>
+        <div class="ex-text"><strong>Marcar em cada uma:</strong> fez triagem? Quantas perguntas? Direcionou pro profissional certo? O tutor agendou?</div>
+      </div>
+      <div class="ex-item">
+        <div class="ex-q">3</div>
+        <div class="ex-text"><strong>Anotar:</strong> em quais conversas a triagem teria mudado o resultado?</div>
+      </div>
+      <div class="ex-item">
+        <div class="ex-q">4</div>
+        <div class="ex-text"><strong>Validar o Mapa de Direcionamento</strong> (slide 9) com os profissionais e horários atuais — Letícia coordena isso</div>
+      </div>
+      <div class="ex-item">
+        <div class="ex-q">5</div>
+        <div class="ex-text"><strong>Trazer as observações</strong> pro Treinamento 3 — sem julgamento, foco em aprendizado coletivo</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SLIDE 16 — FECHAMENTO ═══ -->
+  <section class="slide s-closing" data-slide="16">
+    <div class="deco-circle dc1"></div>
+    <div class="deco-circle dc2"></div>
+    <p class="main-quote">A triagem bem feita é <span>invisível</span> pro tutor.<br>Ele sente que foi bem atendido,<br>não que foi interrogado.</p>
+    <div class="closing-list">
+      <span class="cl-tag">✓ Triar = entender pra direcionar certo</span>
+      <span class="cl-tag">✓ 🔴 Imediato · 🟡 Triagem normal · 🟢 Rotina</span>
+      <span class="cl-tag">✓ Poucas perguntas certas</span>
+      <span class="cl-tag">✓ Adaptar ao perfil do tutor</span>
+      <span class="cl-tag">✓ Saber quando NÃO triar</span>
+    </div>
+    <div class="next-badge">Próximo: Treinamento 3 — Agendamento e Conversão</div>
+    <p style="margin-top:32px;font-size:14px;color:rgba(255,255,255,.25)">Hospital Veterinário São Bernardo 🐾</p>
+  </section>
+
+</div><!-- /deck -->
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+
+  const progressBar = document.getElementById('progress-bar');
+  const slideNum    = document.getElementById('slide-num');
+  const btnPrev     = document.getElementById('btn-prev');
+  const btnNext     = document.getElementById('btn-next');
+
+  function goTo(n) {
+    if (n < 0 || n >= total) return;
+    slides.forEach((s, i) => {
+      if (i === current) { s.classList.remove('active'); s.classList.add('exit'); setTimeout(() => s.classList.remove('exit'), 450); }
+      else { s.classList.remove('active', 'exit'); }
+    });
+    current = n;
+    slides[current].classList.add('active');
+    const pct = ((current + 1) / total) * 100;
+    progressBar.style.width = pct + '%';
+    slideNum.textContent = (current + 1) + ' / ' + total;
+    btnPrev.style.opacity = current === 0 ? '0.2' : '1';
+    btnNext.style.opacity = current === total - 1 ? '0.2' : '1';
+  }
+
+  btnNext.addEventListener('click', () => goTo(current + 1));
+  btnPrev.addEventListener('click', () => goTo(current - 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                    { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'Home') goTo(0);
+    if (e.key === 'End')  goTo(total - 1);
+  });
+
+  let tx = 0;
+  document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend',   e => {
+    const dx = tx - e.changedTouches[0].clientX;
+    if (Math.abs(dx) > 50) goTo(current + (dx > 0 ? 1 : -1));
+  });
+
+  goTo(0);
+</script>
+</body>
+</html>
