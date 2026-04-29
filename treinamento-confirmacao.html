@@ -69,7 +69,7 @@
     position: fixed; bottom: 24px; right: 32px;
     font-family: 'Oswald', sans-serif;
     font-size: 13px; font-weight: 500;
-    color: rgba(255,255,255,.4);
+    color: rgba(255,255,255,.65);
     z-index: 100; letter-spacing: .05em;
   }
 
@@ -110,7 +110,7 @@
     letter-spacing: .02em; text-transform: uppercase;
   }
   .s-cover h1 span { color: #116DFF; }
-  .s-cover .sub { font-size: 17px; color: rgba(255,255,255,.45); font-weight: 400; letter-spacing: .04em; max-width: 600px; margin: 0 auto; line-height: 1.5; }
+  .s-cover .sub { font-size: 17px; color: rgba(255,255,255,.75); font-weight: 400; letter-spacing: .04em; max-width: 600px; margin: 0 auto; line-height: 1.5; }
   .deco-circle { position: absolute; border-radius: 50%; background: rgba(17,109,255,.1); pointer-events: none; }
   .dc1 { width: 500px; height: 500px; top: -150px; right: -150px; }
   .dc2 { width: 300px; height: 300px; bottom: -80px; left: -80px; }
@@ -146,12 +146,12 @@
 
   /* ── HIGHLIGHT BOX ── */
   .highlight-box {
-    background: rgba(17,109,255,.12);
-    border: 1px solid rgba(17,109,255,.3);
+    background: rgba(17,109,255,.14);
+    border: 1px solid rgba(17,109,255,.35);
     border-radius: 10px;
     padding: 16px 22px;
     font-size: 15px;
-    color: rgba(255,255,255,.85);
+    color: rgba(255,255,255,.95);
     line-height: 1.6;
     max-width: 700px;
     margin: 0 auto;
@@ -163,12 +163,12 @@
   }
 
   .note-box {
-    background: rgba(245,166,35,.1);
+    background: rgba(245,166,35,.12);
     border-left: 3px solid var(--yellow);
     border-radius: 0 8px 8px 0;
     padding: 12px 18px;
     font-size: 14px;
-    color: rgba(255,255,255,.8);
+    color: rgba(255,255,255,.92);
     max-width: 700px;
     margin-top: 16px;
   }
@@ -188,7 +188,10 @@
     border: 1px solid rgba(255,255,255,.08);
   }
   .recap-check { font-size: 18px; flex-shrink: 0; }
-  .recap-text { font-size: 14px; color: rgba(255,255,255,.8); line-height: 1.4; }
+  .recap-text { font-size: 14px; color: rgba(255,255,255,.85); line-height: 1.4; }
+  .s-light .recap-item { background: rgba(0,42,66,.07); border-color: rgba(0,42,66,.15); }
+  .s-light .recap-text { color: rgba(0,42,66,.88); }
+  .s-light .recap-text strong { color: #002A42; }
 
   /* ── FUNNEL ── */
   .funnel-row {
@@ -213,7 +216,7 @@
     padding: 10px 20px; border-radius: 24px;
     letter-spacing: .04em;
   }
-  .f-arrow { color: rgba(255,255,255,.3); font-size: 20px; }
+  .f-arrow { color: rgba(255,255,255,.6); font-size: 20px; }
 
   /* ── LOSS BOX ── */
   .loss-box {
@@ -235,7 +238,7 @@
     font-family: 'Oswald', sans-serif;
     font-size: 12px; font-weight: 600;
     letter-spacing: .14em; text-transform: uppercase;
-    color: rgba(255,180,180,.7);
+    color: rgba(255,200,200,.9);
     margin-bottom: 20px;
   }
   .loss-calc {
@@ -249,8 +252,8 @@
     font-size: 36px; font-weight: 700;
     color: #fff; line-height: 1;
   }
-  .loss-desc { font-size: 12px; color: rgba(255,180,180,.65); margin-top: 4px; }
-  .loss-op { font-size: 22px; color: rgba(255,150,150,.4); }
+  .loss-desc { font-size: 12px; color: rgba(255,200,200,.88); margin-top: 4px; }
+  .loss-op { font-size: 22px; color: rgba(255,180,180,.75); }
   .loss-total {
     border-top: 1px solid rgba(224,92,92,.3);
     padding-top: 18px; text-align: center;
@@ -260,7 +263,7 @@
     font-size: 52px; font-weight: 700;
     color: #ff8080; line-height: 1;
   }
-  .loss-label { font-size: 14px; color: rgba(255,180,180,.65); margin-top: 6px; }
+  .loss-label { font-size: 14px; color: rgba(255,210,210,.9); margin-top: 6px; }
 
   /* ── NO-SHOW CARDS ── */
   .noshow-grid {
@@ -289,7 +292,7 @@
     color: #fff; margin-bottom: 8px;
     text-transform: uppercase; letter-spacing: .04em;
   }
-  .ns-desc { font-size: 13px; color: rgba(255,255,255,.55); margin-bottom: 14px; line-height: 1.5; }
+  .ns-desc { font-size: 13px; color: rgba(255,255,255,.80); margin-bottom: 14px; line-height: 1.5; }
   .ns-fix {
     background: rgba(255,255,255,.08);
     border-radius: 8px; padding: 10px 12px;
@@ -337,12 +340,12 @@
     color: #fff; margin-bottom: 6px;
     text-transform: uppercase;
   }
-  .tl-desc { font-size: 12px; color: rgba(255,255,255,.5); line-height: 1.5; }
+  .tl-desc { font-size: 12px; color: rgba(255,255,255,.78); line-height: 1.5; }
   .tl-goal {
     display: inline-block; margin-top: 8px;
     font-size: 11px; font-weight: 600;
-    background: rgba(255,255,255,.08);
-    border-radius: 6px; padding: 4px 8px; color: rgba(255,255,255,.7);
+    background: rgba(255,255,255,.12);
+    border-radius: 6px; padding: 4px 8px; color: rgba(255,255,255,.9);
   }
 
   /* ── CHAT BUBBLES ── */
@@ -363,8 +366,8 @@
     margin-bottom: 4px; opacity: .55;
   }
   .bubble.them {
-    background: rgba(255,255,255,.1);
-    color: rgba(255,255,255,.85);
+    background: rgba(255,255,255,.14);
+    color: rgba(255,255,255,.95);
     align-self: flex-start;
     border-bottom-left-radius: 4px;
   }
@@ -382,10 +385,10 @@
     align-self: flex-start;
   }
   .why-box {
-    background: rgba(37,201,122,.1);
-    border: 1px solid rgba(37,201,122,.25);
+    background: rgba(37,201,122,.12);
+    border: 1px solid rgba(37,201,122,.3);
     border-radius: 8px; padding: 12px 16px;
-    font-size: 13px; color: rgba(255,255,255,.75);
+    font-size: 13px; color: rgba(255,255,255,.9);
     line-height: 1.5; margin-top: 8px; align-self: stretch;
   }
   .why-box strong { color: var(--green); }
@@ -470,7 +473,7 @@
     background: rgba(37,201,122,.08);
     border-left: 3px solid var(--green);
   }
-  .err-arr { color: rgba(255,255,255,.25); font-size: 16px; text-align: center; }
+  .err-arr { color: rgba(255,255,255,.6); font-size: 16px; text-align: center; }
 
   /* ── METRICS ── */
   .metrics-grid {
@@ -494,14 +497,14 @@
   .metric-name {
     font-size: 11px; font-weight: 600;
     text-transform: uppercase; letter-spacing: .1em;
-    color: rgba(255,255,255,.45); margin-bottom: 8px;
+    color: rgba(255,255,255,.72); margin-bottom: 8px;
   }
   .metric-val {
     font-family: 'Oswald', sans-serif;
     font-size: 30px; font-weight: 700;
     color: #fff; margin-bottom: 8px;
   }
-  .metric-how { font-size: 12px; color: rgba(255,255,255,.5); line-height: 1.5; }
+  .metric-how { font-size: 12px; color: rgba(255,255,255,.78); line-height: 1.5; }
 
   /* ── CHECKLIST ── */
   .cl-groups {
@@ -535,12 +538,12 @@
     width: 16px; height: 16px; accent-color: var(--blue-l);
     cursor: pointer; margin-top: 1px; flex-shrink: 0;
   }
-  .cl-item label { font-size: 12px; color: rgba(255,255,255,.75); cursor: pointer; line-height: 1.4; }
+  .cl-item label { font-size: 12px; color: rgba(255,255,255,.9); cursor: pointer; line-height: 1.4; }
   .cl-item.checked label { text-decoration: line-through; color: rgba(255,255,255,.3); }
   .cl-prog {
     padding: 8px 14px;
     background: rgba(0,0,0,.2);
-    font-size: 11px; color: rgba(255,255,255,.35);
+    font-size: 11px; color: rgba(255,255,255,.65);
     display: flex; align-items: center; gap: 8px;
   }
   .cl-bar { flex: 1; height: 3px; background: rgba(255,255,255,.1); border-radius: 2px; overflow: hidden; }
