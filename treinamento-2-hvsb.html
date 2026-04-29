@@ -1,0 +1,1808 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Treinamento 2 — Confirmação Ativa e Redução de No-Show | HVSB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1a3a5c;
+    --blue: #2e75b6;
+    --danger: #c0392b;
+    --alert: #e67e22;
+    --success: #27ae60;
+    --bg: #f2f5f8;
+    --white: #ffffff;
+    --text: #1e2d3d;
+    --text-light: #5a6a7a;
+    --border: #d0dde8;
+    --sidebar-w: 260px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* ──────────── SIDEBAR ──────────── */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: var(--sidebar-w);
+    height: 100vh;
+    background: var(--navy);
+    overflow-y: auto;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    transition: transform .3s ease;
+  }
+
+  .sidebar-logo {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+  }
+
+  .sidebar-logo .badge {
+    display: inline-block;
+    background: var(--blue);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+
+  .sidebar-logo h2 {
+    color: #fff;
+    font-family: 'DM Serif Display', serif;
+    font-size: 16px;
+    line-height: 1.3;
+    font-weight: 400;
+  }
+
+  .sidebar-logo p {
+    color: rgba(255,255,255,.5);
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  .trail-indicator {
+    padding: 16px 24px;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+  }
+
+  .trail-label {
+    color: rgba(255,255,255,.5);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 8px;
+  }
+
+  .trail-dots {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .trail-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.2);
+  }
+
+  .trail-dot.done { background: var(--success); }
+  .trail-dot.current { background: var(--blue); box-shadow: 0 0 0 3px rgba(46,117,182,.4); }
+
+  .nav-menu {
+    padding: 16px 0;
+    flex: 1;
+  }
+
+  .nav-menu a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    color: rgba(255,255,255,.65);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all .2s;
+    border-left: 3px solid transparent;
+    line-height: 1.3;
+  }
+
+  .nav-menu a:hover,
+  .nav-menu a.active {
+    color: #fff;
+    background: rgba(255,255,255,.07);
+    border-left-color: var(--blue);
+  }
+
+  .nav-menu a .num {
+    font-size: 10px;
+    color: rgba(255,255,255,.35);
+    min-width: 16px;
+  }
+
+  /* ──────────── TOPBAR (mobile) ──────────── */
+  .topbar {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 56px;
+    background: var(--navy);
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 300;
+  }
+
+  .topbar-title {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .hamburger {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .hamburger span {
+    display: block;
+    width: 22px; height: 2px;
+    background: #fff;
+    border-radius: 2px;
+    transition: all .3s;
+  }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.5);
+    z-index: 150;
+  }
+
+  .overlay.show { display: block; }
+
+  /* ──────────── MAIN ──────────── */
+  .main {
+    margin-left: var(--sidebar-w);
+    padding: 0;
+  }
+
+  /* ──────────── SECTIONS ──────────── */
+  section {
+    padding: 72px 56px;
+    max-width: 860px;
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity .5s ease, transform .5s ease;
+  }
+
+  section.visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  section:first-child { opacity: 1; transform: none; }
+
+  section + section {
+    border-top: 1px solid var(--border);
+  }
+
+  /* ──────────── HERO ──────────── */
+  #hero {
+    background: linear-gradient(135deg, var(--navy) 0%, #2a5280 100%);
+    color: #fff;
+    padding: 80px 56px;
+    max-width: 100%;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.25);
+    color: rgba(255,255,255,.9);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 20px;
+    margin-bottom: 28px;
+  }
+
+  #hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(30px, 4vw, 46px);
+    font-weight: 400;
+    line-height: 1.15;
+    margin-bottom: 20px;
+    max-width: 640px;
+  }
+
+  #hero p {
+    font-size: 18px;
+    color: rgba(255,255,255,.8);
+    max-width: 560px;
+    line-height: 1.6;
+    margin-bottom: 36px;
+  }
+
+  .trail-banner {
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(255,255,255,.1);
+    border-radius: 12px;
+    padding: 14px 20px;
+  }
+
+  .trail-banner .trail-text {
+    font-size: 13px;
+    color: rgba(255,255,255,.7);
+  }
+
+  .trail-progress {
+    display: flex;
+    gap: 6px;
+  }
+
+  .trail-progress-dot {
+    width: 28px; height: 6px;
+    border-radius: 3px;
+    background: rgba(255,255,255,.2);
+  }
+
+  .trail-progress-dot.done { background: var(--success); }
+  .trail-progress-dot.current { background: var(--blue); }
+
+  /* ──────────── HEADINGS ──────────── */
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 10px;
+  }
+
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(24px, 3vw, 34px);
+    font-weight: 400;
+    color: var(--navy);
+    line-height: 1.2;
+    margin-bottom: 20px;
+  }
+
+  h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--navy);
+    margin-bottom: 12px;
+  }
+
+  p { margin-bottom: 16px; color: var(--text); }
+  p:last-child { margin-bottom: 0; }
+
+  /* ──────────── CALLOUT / LOSS BOX ──────────── */
+  .loss-box {
+    background: #7b1a1a;
+    border-radius: 16px;
+    padding: 36px;
+    margin-top: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .loss-box::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 160px; height: 160px;
+    background: rgba(255,255,255,.04);
+    border-radius: 50%;
+  }
+
+  .loss-box-title {
+    color: rgba(255,200,200,.9);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .loss-calc {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+
+  .loss-item {
+    text-align: center;
+  }
+
+  .loss-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    color: #fff;
+    line-height: 1;
+  }
+
+  .loss-desc {
+    font-size: 12px;
+    color: rgba(255,200,200,.7);
+    margin-top: 4px;
+  }
+
+  .loss-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,150,150,.5);
+    font-size: 24px;
+    align-self: center;
+  }
+
+  .loss-total {
+    border-top: 1px solid rgba(255,150,150,.25);
+    padding-top: 20px;
+    text-align: center;
+  }
+
+  .loss-total-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 48px;
+    color: #ff8080;
+    line-height: 1;
+  }
+
+  .loss-total-label {
+    color: rgba(255,200,200,.7);
+    font-size: 14px;
+    margin-top: 6px;
+  }
+
+  /* ──────────── FUNNEL ──────────── */
+  .funnel {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-top: 28px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .funnel-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .funnel-node {
+    background: var(--blue);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .funnel-node.danger { background: var(--danger); }
+  .funnel-node.muted { background: #8aabcc; }
+
+  .funnel-arrow { color: #aaa; font-size: 18px; }
+
+  .funnel-gap {
+    background: rgba(192,57,43,.15);
+    border: 2px dashed var(--danger);
+    color: var(--danger);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  /* ──────────── NO-SHOW CARDS ──────────── */
+  .noshow-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-top: 28px;
+  }
+
+  .noshow-card {
+    background: var(--white);
+    border-radius: 14px;
+    padding: 28px 24px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .noshow-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+  }
+
+  .noshow-card.red::before { background: var(--danger); }
+  .noshow-card.yellow::before { background: var(--alert); }
+  .noshow-card.green::before { background: var(--success); }
+
+  .noshow-icon { font-size: 28px; margin-bottom: 14px; }
+
+  .noshow-card h3 { font-size: 17px; margin-bottom: 8px; }
+
+  .noshow-desc { font-size: 14px; color: var(--text-light); margin-bottom: 14px; }
+
+  .noshow-solution {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--navy);
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+
+  .noshow-solution span:first-child { flex-shrink: 0; }
+
+  /* ──────────── TIMELINE ──────────── */
+  .timeline {
+    position: relative;
+    margin-top: 36px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    top: 36px;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: linear-gradient(to right, var(--blue), var(--alert), var(--danger));
+    z-index: 0;
+  }
+
+  .timeline-step {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    padding: 0 8px;
+  }
+
+  .timeline-dot {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 700;
+    border: 3px solid #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,.12);
+    background: var(--blue);
+    color: #fff;
+  }
+
+  .timeline-step:nth-child(2) .timeline-dot { background: #5b8fbf; }
+  .timeline-step:nth-child(3) .timeline-dot { background: var(--alert); }
+  .timeline-step:nth-child(4) .timeline-dot { background: var(--danger); }
+
+  .timeline-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+
+  .timeline-when {
+    font-size: 11px;
+    color: var(--blue);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 8px;
+  }
+
+  .timeline-desc {
+    font-size: 12px;
+    color: var(--text-light);
+    line-height: 1.5;
+  }
+
+  .timeline-goal {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 8px;
+    background: var(--bg);
+    border-radius: 6px;
+    padding: 4px 8px;
+    color: var(--text);
+  }
+
+  /* ──────────── SCRIPTS / CHAT ──────────── */
+  .script-block {
+    background: var(--white);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-top: 28px;
+  }
+
+  .script-header {
+    background: var(--navy);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .script-badge {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--blue);
+    background: rgba(46,117,182,.15);
+    border: 1px solid rgba(46,117,182,.3);
+    padding: 3px 10px;
+    border-radius: 10px;
+  }
+
+  .script-moment {
+    font-size: 13px;
+    color: rgba(255,255,255,.7);
+    font-weight: 500;
+  }
+
+  .chat-area {
+    padding: 24px;
+    background: #e8eef4;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .bubble {
+    max-width: 80%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.55;
+    position: relative;
+  }
+
+  .bubble.tutor {
+    background: #fff;
+    color: var(--text);
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  }
+
+  .bubble.hospital {
+    background: var(--blue);
+    color: #fff;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.12);
+  }
+
+  .bubble-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 4px;
+    opacity: .55;
+  }
+
+  .script-why {
+    padding: 16px 24px;
+    background: #f7fafc;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-light);
+  }
+
+  .script-why strong { color: var(--navy); }
+
+  .script-why-icon {
+    width: 20px; height: 20px;
+    background: var(--success);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* ──────────── POLICY TABLE ──────────── */
+  .policy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-top: 28px;
+  }
+
+  .policy-card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 22px 20px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--blue);
+  }
+
+  .policy-card.danger-border { border-left-color: var(--danger); }
+  .policy-card.alert-border { border-left-color: var(--alert); }
+  .policy-card.success-border { border-left-color: var(--success); }
+
+  .policy-range {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+
+  .policy-action { font-size: 14px; color: var(--text-light); }
+
+  .policy-special {
+    background: rgba(26,58,92,.06);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-top: 20px;
+    font-size: 14px;
+  }
+
+  .policy-special strong { color: var(--navy); display: block; margin-bottom: 6px; }
+
+  .repeated-script {
+    background: var(--white);
+    border-radius: 10px;
+    border: 1px dashed var(--border);
+    padding: 14px 18px;
+    font-size: 14px;
+    font-style: italic;
+    color: var(--text);
+    margin-top: 16px;
+    position: relative;
+  }
+
+  .repeated-script::before {
+    content: '"';
+    font-family: 'DM Serif Display', serif;
+    font-size: 48px;
+    color: var(--blue);
+    opacity: .2;
+    position: absolute;
+    top: -8px; left: 12px;
+    line-height: 1;
+  }
+
+  /* ──────────── WAITING LIST ──────────── */
+  .steps-list {
+    counter-reset: step;
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .steps-list-item {
+    counter-increment: step;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: var(--white);
+    border-radius: 12px;
+    padding: 18px 20px;
+    border: 1px solid var(--border);
+  }
+
+  .step-num {
+    width: 32px; height: 32px;
+    background: var(--navy);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .step-num::before { content: counter(step); }
+
+  .step-content { font-size: 14px; line-height: 1.5; }
+  .step-content strong { color: var(--navy); display: block; margin-bottom: 4px; }
+
+  .tag-visual {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(138,72,192,.12);
+    border: 1px solid rgba(138,72,192,.25);
+    color: #6b3aab;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 12px;
+  }
+
+  /* ──────────── ERRORS LIST ──────────── */
+  .errors-list {
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .error-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .error-bad, .error-good {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.5;
+    border: 1px solid var(--border);
+  }
+
+  .error-bad {
+    border-left: 3px solid var(--danger);
+  }
+
+  .error-good {
+    border-left: 3px solid var(--success);
+  }
+
+  .error-bad::before { content: '❌ '; }
+  .error-good::before { content: '✅ '; }
+
+  .error-arrow {
+    display: flex;
+    align-items: center;
+    color: #aaa;
+    font-size: 18px;
+  }
+
+  /* ──────────── METRICS ──────────── */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 28px;
+  }
+
+  .metric-card {
+    background: var(--white);
+    border-radius: 14px;
+    padding: 24px 20px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .metric-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .metric-card:nth-child(1)::after { background: var(--success); }
+  .metric-card:nth-child(2)::after { background: var(--blue); }
+  .metric-card:nth-child(3)::after { background: var(--alert); }
+  .metric-card:nth-child(4)::after { background: var(--navy); }
+
+  .metric-name {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--text-light);
+    margin-bottom: 10px;
+  }
+
+  .metric-target {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: var(--navy);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .metric-how {
+    font-size: 12px;
+    color: var(--text-light);
+    line-height: 1.5;
+  }
+
+  /* ──────────── CHECKLIST ──────────── */
+  .checklist-section {
+    margin-top: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .checklist-group {
+    background: var(--white);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .checklist-group-header {
+    background: var(--navy);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .checklist-group-header span {
+    font-size: 16px;
+  }
+
+  .checklist-group-header h3 {
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .checklist-items {
+    padding: 8px 0;
+  }
+
+  .checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--bg);
+    cursor: pointer;
+    transition: background .15s;
+  }
+
+  .checklist-item:last-child { border-bottom: none; }
+  .checklist-item:hover { background: var(--bg); }
+
+  .checklist-item input[type="checkbox"] {
+    width: 18px; height: 18px;
+    accent-color: var(--blue);
+    cursor: pointer;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .checklist-item label {
+    font-size: 14px;
+    color: var(--text);
+    cursor: pointer;
+    line-height: 1.4;
+  }
+
+  .checklist-item.checked label {
+    text-decoration: line-through;
+    color: var(--text-light);
+  }
+
+  .checklist-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: var(--bg);
+    font-size: 12px;
+    color: var(--text-light);
+    font-weight: 500;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--blue);
+    border-radius: 2px;
+    transition: width .3s ease;
+  }
+
+  /* ──────────── FINAL MSG ──────────── */
+  #final {
+    background: linear-gradient(135deg, var(--navy) 0%, #2a5280 100%);
+    color: #fff;
+    max-width: 100%;
+  }
+
+  #final h2 { color: #fff; }
+
+  .final-quote {
+    background: rgba(255,255,255,.1);
+    border-left: 4px solid var(--blue);
+    border-radius: 0 12px 12px 0;
+    padding: 24px 28px;
+    margin-top: 28px;
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: rgba(255,255,255,.95);
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  .final-sub {
+    margin-top: 20px;
+    color: rgba(255,255,255,.7);
+    font-size: 16px;
+    max-width: 560px;
+  }
+
+  /* ──────────── FOOTER ──────────── */
+  footer {
+    background: #0f2338;
+    color: rgba(255,255,255,.4);
+    font-size: 12px;
+    padding: 24px 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  footer span { color: rgba(255,255,255,.6); }
+
+  /* ──────────── RESPONSIVE ──────────── */
+  @media (max-width: 840px) {
+    .sidebar {
+      transform: translateX(-100%);
+    }
+
+    .sidebar.open {
+      transform: translateX(0);
+    }
+
+    .topbar { display: flex; }
+
+    .main {
+      margin-left: 0;
+      padding-top: 56px;
+    }
+
+    section { padding: 48px 20px; }
+    #hero { padding: 48px 20px; }
+
+    .timeline {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .timeline::before { display: none; }
+
+    .timeline-step { text-align: left; display: flex; align-items: flex-start; gap: 16px; }
+    .timeline-dot { margin: 0; flex-shrink: 0; }
+
+    .error-row {
+      grid-template-columns: 1fr;
+    }
+
+    .error-arrow { display: none; }
+
+    footer { padding: 20px; }
+
+    .loss-calc {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- TOPBAR (mobile) -->
+<div class="topbar">
+  <div class="topbar-title">Treinamento 2 — HVSB</div>
+  <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="badge">Sigma Assessoria</div>
+    <h2>Confirmação Ativa e Redução de No-Show</h2>
+    <p>HVSB · Treinamento 2 de 8</p>
+  </div>
+
+  <div class="trail-indicator">
+    <div class="trail-label">Trilha de treinamentos</div>
+    <div class="trail-dots">
+      <div class="trail-dot done" title="Treinamento 1 — Manual Comercial"></div>
+      <div class="trail-dot current" title="Treinamento 2 — No-Show (atual)"></div>
+      <div class="trail-dot"></div>
+      <div class="trail-dot"></div>
+      <div class="trail-dot"></div>
+      <div class="trail-dot"></div>
+      <div class="trail-dot"></div>
+      <div class="trail-dot"></div>
+    </div>
+  </div>
+
+  <div class="nav-menu">
+    <a href="#hero"><span class="num">01</span> Apresentação</a>
+    <a href="#importa"><span class="num">02</span> Por que isso importa</a>
+    <a href="#tipos"><span class="num">03</span> Os 3 tipos de no-show</a>
+    <a href="#quando"><span class="num">04</span> Quando confirmar</a>
+    <a href="#scripts"><span class="num">05</span> Scripts prontos</a>
+    <a href="#politica"><span class="num">06</span> Política de reagendamento</a>
+    <a href="#espera"><span class="num">07</span> Lista de espera</a>
+    <a href="#erros"><span class="num">08</span> Erros que geram no-show</a>
+    <a href="#indicadores"><span class="num">09</span> Indicadores</a>
+    <a href="#checklist"><span class="num">10</span> Checklist diário</a>
+    <a href="#final"><span class="num">11</span> Mensagem final</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- 01 HERO -->
+  <section id="hero">
+    <div class="hero-badge">📋 Treinamento 2 · Sigma Assessoria</div>
+    <h1>Confirmação Ativa e Redução de No-Show</h1>
+    <p>Como garantir que o agendamento vire atendimento — e parar de perder receita com buracos na agenda.</p>
+
+    <div class="trail-banner">
+      <div class="trail-text">Trilha de treinamentos</div>
+      <div class="trail-progress">
+        <div class="trail-progress-dot done" title="T1 — Manual Comercial"></div>
+        <div class="trail-progress-dot current" title="T2 — No-Show (você está aqui)"></div>
+        <div class="trail-progress-dot"></div>
+        <div class="trail-progress-dot"></div>
+        <div class="trail-progress-dot"></div>
+        <div class="trail-progress-dot"></div>
+        <div class="trail-progress-dot"></div>
+        <div class="trail-progress-dot"></div>
+      </div>
+      <div class="trail-text" style="font-weight:700; color:#fff;">2 de 8</div>
+    </div>
+  </section>
+
+  <!-- 02 POR QUE IMPORTA -->
+  <section id="importa">
+    <div class="section-label">Seção 02</div>
+    <h2>O buraco entre o agendamento e o atendimento</h2>
+    <p>O treinamento anterior ensinou como converter o lead em agendamento. Mas existe um buraco que aparece logo depois:</p>
+
+    <div class="funnel">
+      <div class="funnel-step">
+        <div class="funnel-node">Lead chega</div>
+        <div class="funnel-arrow">→</div>
+      </div>
+      <div class="funnel-step">
+        <div class="funnel-node">Recepção converte</div>
+        <div class="funnel-arrow">→</div>
+      </div>
+      <div class="funnel-step">
+        <div class="funnel-node">Agendamento marcado</div>
+        <div class="funnel-arrow">→</div>
+      </div>
+      <div class="funnel-step">
+        <div class="funnel-gap">??? o buraco ???</div>
+        <div class="funnel-arrow">→</div>
+      </div>
+      <div class="funnel-node muted">Atendimento</div>
+    </div>
+
+    <p style="margin-top:20px;">Esse "???" é onde o dinheiro desaparece. No-show não é azar — é consequência de processo. E processo tem solução.</p>
+
+    <div class="loss-box">
+      <div class="loss-box-title">💸 Cálculo do prejuízo com 10% de no-show</div>
+      <div class="loss-calc">
+        <div class="loss-item">
+          <div class="loss-num">100</div>
+          <div class="loss-desc">atendimentos por dia</div>
+        </div>
+        <div class="loss-arrow">×</div>
+        <div class="loss-item">
+          <div class="loss-num">10%</div>
+          <div class="loss-desc">taxa de no-show</div>
+        </div>
+        <div class="loss-arrow">=</div>
+        <div class="loss-item">
+          <div class="loss-num">10</div>
+          <div class="loss-desc">consultas perdidas/dia</div>
+        </div>
+        <div class="loss-arrow">×</div>
+        <div class="loss-item">
+          <div class="loss-num">R$190</div>
+          <div class="loss-desc">ticket médio</div>
+        </div>
+      </div>
+      <div class="loss-total">
+        <div class="loss-total-num">R$57.000</div>
+        <div class="loss-total-label">perdidos por mês — apenas com buracos na agenda</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 TIPOS -->
+  <section id="tipos">
+    <div class="section-label">Seção 03</div>
+    <h2>Os 3 tipos de no-show</h2>
+    <p>Antes de solucionar, precisa entender o que está causando. Cada tipo tem uma abordagem diferente.</p>
+
+    <div class="noshow-grid">
+      <div class="noshow-card red">
+        <div class="noshow-icon">🔴</div>
+        <h3>Esquecimento puro</h3>
+        <p class="noshow-desc">O tutor marcou, tinha intenção de ir, mas simplesmente esqueceu. Sem má fé — só sem lembrete.</p>
+        <div class="noshow-solution">
+          <span>💡</span>
+          <span>Solução: lembrete 48h antes. Um aviso simples elimina a maioria dos casos.</span>
+        </div>
+      </div>
+
+      <div class="noshow-card yellow">
+        <div class="noshow-icon">🟡</div>
+        <h3>Mudança de plano</h3>
+        <p class="noshow-desc">O pet "melhorou" (ou pareceu melhorar). O tutor achou que não precisava mais vir.</p>
+        <div class="noshow-solution">
+          <span>💡</span>
+          <span>Solução: no momento do agendamento, reforçar a importância preventiva da consulta.</span>
+        </div>
+      </div>
+
+      <div class="noshow-card green">
+        <div class="noshow-icon">🟢</div>
+        <h3>Desistência silenciosa</h3>
+        <p class="noshow-desc">O tutor ficou com dúvida, teve um imprevisto ou simplesmente não deu prioridade — mas não avisou.</p>
+        <div class="noshow-solution">
+          <span>💡</span>
+          <span>Solução: confirmação ativa cria compromisso e abre canal pra reagendar sem constrangimento.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 QUANDO CONFIRMAR -->
+  <section id="quando">
+    <div class="section-label">Seção 04</div>
+    <h2>Quando confirmar</h2>
+    <p>A confirmação não é um evento único — é uma sequência. Cada momento tem um tom e objetivo específico.</p>
+
+    <div class="timeline">
+      <div class="timeline-step">
+        <div class="timeline-dot">48h</div>
+        <div>
+          <div class="timeline-when">48h antes</div>
+          <div class="timeline-label">Lembrete suave</div>
+          <div class="timeline-desc">Planta o lembrete. Tom amigável. Não pede confirmação ainda — só lembra.</div>
+          <div class="timeline-goal">🎯 Eliminar esquecimento</div>
+        </div>
+      </div>
+
+      <div class="timeline-step">
+        <div class="timeline-dot">24h</div>
+        <div>
+          <div class="timeline-when">24h antes</div>
+          <div class="timeline-label">Confirmação ativa</div>
+          <div class="timeline-desc">Pede resposta. Tom direto. Se não responder em 4h, ligar.</div>
+          <div class="timeline-goal">🎯 Obter comprometimento</div>
+        </div>
+      </div>
+
+      <div class="timeline-step">
+        <div class="timeline-dot">4h</div>
+        <div>
+          <div class="timeline-when">4h antes</div>
+          <div class="timeline-label">Último contato</div>
+          <div class="timeline-desc">Só se não houve resposta. Tom prático e direto, com oferta de reagendamento.</div>
+          <div class="timeline-goal">🎯 Último aviso</div>
+        </div>
+      </div>
+
+      <div class="timeline-step">
+        <div class="timeline-dot" style="font-size:16px;">😕</div>
+        <div>
+          <div class="timeline-when">Se não apareceu</div>
+          <div class="timeline-label">Recuperação</div>
+          <div class="timeline-desc">Entender o que aconteceu e reagendar imediatamente. Tom cuidadoso, nunca de cobrança.</div>
+          <div class="timeline-goal">🎯 Salvar o agendamento</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 SCRIPTS -->
+  <section id="scripts">
+    <div class="section-label">Seção 05</div>
+    <h2>Scripts prontos para usar</h2>
+    <p>Copie, adapte com o nome do tutor e do pet, e envie. Cada script tem um motivo para funcionar.</p>
+
+    <!-- Script A -->
+    <div class="script-block">
+      <div class="script-header">
+        <span class="script-badge">Script A</span>
+        <span class="script-moment">Lembrete 48h · WhatsApp</span>
+      </div>
+      <div class="chat-area">
+        <div class="bubble hospital">
+          <div class="bubble-label">São Bernardo</div>
+          Oi [nome]! 👋 Passando pra lembrar que a [pet] tem consulta com o [Dr./Dra.] amanhã às [horário] aqui no São Bernardo. Qualquer dúvida, estou por aqui!
+        </div>
+      </div>
+      <div class="script-why">
+        <div class="script-why-icon">✓</div>
+        <div><strong>Por que funciona:</strong> não pede ação nenhuma, só lembra. Remove o esquecimento sem criar trabalho pro tutor. Fácil de ignorar — e ainda assim planta o lembrete.</div>
+      </div>
+    </div>
+
+    <!-- Script B -->
+    <div class="script-block">
+      <div class="script-header">
+        <span class="script-badge">Script B</span>
+        <span class="script-moment">Confirmação 24h · WhatsApp</span>
+      </div>
+      <div class="chat-area">
+        <div class="bubble hospital">
+          <div class="bubble-label">São Bernardo</div>
+          Oi [nome]! A [pet] tem consulta amanhã às [horário] com o [Dr./Dra.]. Vocês confirmam a presença? Se precisar reagendar, me avisa que a gente encaixa! 😊
+        </div>
+      </div>
+      <div class="script-why">
+        <div class="script-why-icon">✓</div>
+        <div><strong>Por que funciona:</strong> pede uma ação simples (confirmar) e já oferece a saída fácil (reagendar). Reduz o custo emocional de responder, então o tutor responde.</div>
+      </div>
+    </div>
+
+    <!-- Script C -->
+    <div class="script-block">
+      <div class="script-header">
+        <span class="script-badge">Script C</span>
+        <span class="script-moment">Ligação 24h · se não respondeu o WhatsApp</span>
+      </div>
+      <div class="chat-area">
+        <div class="bubble hospital">
+          <div class="bubble-label">São Bernardo (ligação)</div>
+          Oi [nome], aqui é [seu nome] do Hospital São Bernardo. Liguei rapidinho pra confirmar a consulta da [pet] amanhã às [horário]. Tudo certo pra vocês?
+        </div>
+      </div>
+      <div class="script-why">
+        <div class="script-why-icon">✓</div>
+        <div><strong>Por que funciona:</strong> ligação tem taxa de resposta muito maior que mensagem ignorada. O tutor quase sempre atende — e raramente consegue dizer não pessoalmente.</div>
+      </div>
+    </div>
+
+    <!-- Script D -->
+    <div class="script-block">
+      <div class="script-header">
+        <span class="script-badge">Script D</span>
+        <span class="script-moment">Último contato · 4h antes · se ainda sem resposta</span>
+      </div>
+      <div class="chat-area">
+        <div class="bubble hospital">
+          <div class="bubble-label">São Bernardo</div>
+          Oi [nome]! Tentamos te contatar ontem. A consulta da [pet] é hoje às [horário]. Conseguem vir? Se precisar de outro horário, me fala que verifico agora.
+        </div>
+      </div>
+      <div class="script-why">
+        <div class="script-why-icon">✓</div>
+        <div><strong>Por que funciona:</strong> urgência sem pressão. Menciona que já tentou antes (mostra cuidado), e oferece solução imediata. O tutor sente que o hospital está do lado dele.</div>
+      </div>
+    </div>
+
+    <!-- Script E -->
+    <div class="script-block">
+      <div class="script-header">
+        <span class="script-badge">Script E</span>
+        <span class="script-moment">Tutor que não apareceu · pós no-show</span>
+      </div>
+      <div class="chat-area">
+        <div class="bubble hospital">
+          <div class="bubble-label">São Bernardo</div>
+          Oi [nome], aqui é [seu nome] do São Bernardo. Vimos que a [pet] tinha consulta hoje às [horário] e não conseguimos te encontrar. Aconteceu algo? Se quiser reagendar, estou aqui pra te ajudar. 🐾
+        </div>
+      </div>
+      <div class="script-why">
+        <div class="script-why-icon">✓</div>
+        <div><strong>Por que funciona:</strong> cuidado genuíno, não cobrança. O tutor não se sente mal — e fica mais propenso a reagendar. A pergunta "aconteceu algo?" abre conversa sem julgamento.</div>
+      </div>
+    </div>
+
+    <!-- Script F -->
+    <div class="script-block">
+      <div class="script-header">
+        <span class="script-badge">Script F</span>
+        <span class="script-moment">Reagendamento imediato · use em qualquer cancelamento</span>
+      </div>
+      <div class="chat-area">
+        <div class="bubble tutor">
+          <div class="bubble-label">Tutor</div>
+          Não vou conseguir ir hoje não...
+        </div>
+        <div class="bubble hospital">
+          <div class="bubble-label">São Bernardo</div>
+          Sem problema! Tenho horário disponível hoje às [X], amanhã às [X] ou quinta às [X]. Qual fica melhor pra vocês?
+        </div>
+      </div>
+      <div class="script-why">
+        <div class="script-why-icon">✓</div>
+        <div><strong>Por que funciona:</strong> mantém o agendamento vivo com opções concretas. O tutor só precisa escolher — não precisa "procurar" um horário. Cancela a inércia.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 POLÍTICA -->
+  <section id="politica">
+    <div class="section-label">Seção 06</div>
+    <h2>Política de reagendamento</h2>
+    <p>Regras claras protegem a recepção de decisões difíceis na hora do stress. Se está escrito, não precisa improvisar.</p>
+
+    <div class="policy-grid">
+      <div class="policy-card success-border">
+        <div class="policy-range">Até 15 min de atraso</div>
+        <div class="policy-action">✅ Atender normalmente. Não mencionar o atraso.</div>
+      </div>
+      <div class="policy-card alert-border">
+        <div class="policy-range">15 a 30 min de atraso</div>
+        <div class="policy-action">⚠️ Verificar com o veterinário responsável antes de confirmar atendimento.</div>
+      </div>
+      <div class="policy-card danger-border">
+        <div class="policy-range">Mais de 30 min de atraso</div>
+        <div class="policy-action">❌ Reagendar. Exceto emergências — avaliar caso a caso.</div>
+      </div>
+    </div>
+
+    <div class="policy-special">
+      <strong>👩‍💼 Quem autoriza exceção: Letícia (coordenação)</strong>
+      Situações que saem da política padrão — cliente VIP, circunstância excepcional, emergência não declarada — precisam de autorização da Letícia. Não decida sozinha.
+    </div>
+
+    <div style="margin-top: 28px;">
+      <h3>Tutor com 3+ faltas sem aviso</h3>
+      <p>Registrar o histórico no sistema. Na próxima marcação, usar este script:</p>
+      <div class="repeated-script">
+        Vou já separar seu horário. Pra garantir que não se perde, vou te confirmar na véspera, tudo bem?
+      </div>
+      <p style="margin-top:12px; font-size:14px; color:var(--text-light);">Se o padrão continuar mesmo assim → escalar pra coordenação antes de aceitar novo agendamento.</p>
+    </div>
+  </section>
+
+  <!-- 07 LISTA DE ESPERA -->
+  <section id="espera">
+    <div class="section-label">Seção 07</div>
+    <h2>Quando alguém cancela, outro pode entrar</h2>
+    <p>Vaga aberta não é perda — é uma oportunidade de dois segundos. A lista de espera é o ativo mais subutilizado da recepção.</p>
+
+    <div class="steps-list">
+      <div class="steps-list-item">
+        <div class="step-num"></div>
+        <div class="step-content">
+          <strong>Vaga abre por cancelamento ou no-show</strong>
+          Assim que confirmar que a consulta não vai acontecer, a busca começa. Não espere o horário passar.
+        </div>
+      </div>
+      <div class="steps-list-item">
+        <div class="step-num"></div>
+        <div class="step-content">
+          <strong>Consultar etiqueta <span class="tag-visual">🟣 Lista de espera</span> no WhatsApp</strong>
+          Todos os tutores com interesse futuro ficam nessa etiqueta. Acessar a lista e contatar em ordem de chegada.
+        </div>
+      </div>
+      <div class="steps-list-item">
+        <div class="step-num"></div>
+        <div class="step-content">
+          <strong>Enviar o aviso de vaga — Script abaixo</strong>
+          Mensagem curta, direta, com urgência real. Horário por ordem de resposta.
+        </div>
+      </div>
+    </div>
+
+    <div class="script-block" style="margin-top:24px;">
+      <div class="script-header">
+        <span class="script-badge">Script</span>
+        <span class="script-moment">Aviso de vaga disponível</span>
+      </div>
+      <div class="chat-area">
+        <div class="bubble hospital">
+          <div class="bubble-label">São Bernardo</div>
+          Oi [nome]! Abrimos um horário hoje às [X] com o [Dr./Dra.]. Você tinha mencionado interesse — ainda faz sentido pra vocês? Horário é por ordem de resposta! 😊
+        </div>
+      </div>
+      <div class="script-why">
+        <div class="script-why-icon">✓</div>
+        <div><strong>Por que funciona:</strong> urgência real ("por ordem de resposta"), lembra o contexto ("você tinha mencionado") e remove a fricção da busca ativa pelo tutor.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px; background:var(--white); border-radius:12px; padding:22px; border:1px solid var(--border);">
+      <h3 style="margin-bottom:14px;">Como montar e manter a lista</h3>
+      <ul style="font-size:14px; color:var(--text-light); padding-left:18px; display:flex; flex-direction:column; gap:8px;">
+        <li>Criar etiqueta <span class="tag-visual" style="display:inline-flex; font-size:11px;">🟣 Lista de espera</span> no WhatsApp Business</li>
+        <li>Quando não tem horário disponível → adicionar o tutor com a preferência anotada (especialidade, horário, dias)</li>
+        <li>Revisar a lista toda manhã e verificar se alguma preferência combina com o dia</li>
+        <li>Remover da lista quem foi atendido ou desistiu</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 08 ERROS -->
+  <section id="erros">
+    <div class="section-label">Seção 08</div>
+    <h2>Erros que geram no-show</h2>
+    <p>Cada erro abaixo tem um impacto direto na taxa de comparecimento. Reconhecer é o primeiro passo pra corrigir.</p>
+
+    <div class="errors-list">
+      <div class="error-row">
+        <div class="error-bad">Confirmar só pelo sistema, sem contato humano</div>
+        <div class="error-arrow">→</div>
+        <div class="error-good">Sistema é apoio, não substituto. Sempre complementar com WhatsApp ou ligação</div>
+      </div>
+      <div class="error-row">
+        <div class="error-bad">Mandar confirmação 48h e mais nada</div>
+        <div class="error-arrow">→</div>
+        <div class="error-good">Sequência completa: 48h + 24h + 4h se necessário. Um contato não basta</div>
+      </div>
+      <div class="error-row">
+        <div class="error-bad">Reagendar sem oferecer horário imediato</div>
+        <div class="error-arrow">→</div>
+        <div class="error-good">Sempre ter 2-3 opções na ponta da língua. Quem precisa "pensar" não volta</div>
+      </div>
+      <div class="error-row">
+        <div class="error-bad">Deixar vaga vazia sem acionar lista de espera</div>
+        <div class="error-arrow">→</div>
+        <div class="error-good">Vaga aberta = oportunidade imediata. Acionar a lista antes do horário passar</div>
+      </div>
+      <div class="error-row">
+        <div class="error-bad">Tratar no-show como "normal" ou inevitável</div>
+        <div class="error-arrow">→</div>
+        <div class="error-good">Registrar, acompanhar, identificar padrões. Processo ruim gera no-show — não azar</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 09 INDICADORES -->
+  <section id="indicadores">
+    <div class="section-label">Seção 09</div>
+    <h2>Indicadores para acompanhar</h2>
+    <p>O que não é medido não melhora. Quatro números pra acompanhar semanalmente.</p>
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-name">Taxa de comparecimento</div>
+        <div class="metric-target">≥ 85%</div>
+        <div class="metric-how">
+          <strong>(comparecimentos ÷ agendamentos) × 100</strong><br>
+          Medir semanalmente. Meta: acima de 85% toda semana.
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-name">Taxa de reagendamento</div>
+        <div class="metric-target">≥ 70%</div>
+        <div class="metric-how">
+          <strong>(reagendamentos ÷ cancelamentos) × 100</strong><br>
+          Cancelamento que vira reagendamento não é perda. Meta: 70% dos cancelamentos voltam.
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-name">Tempo de resposta à confirmação</div>
+        <div class="metric-target">4h</div>
+        <div class="metric-how">
+          Se o tutor demora mais de 4h pra confirmar = sinal de risco.<br>
+          Ligar imediatamente. Não esperar.
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-name">Motivos de no-show</div>
+        <div class="metric-target">Sempre registrar</div>
+        <div class="metric-how">
+          Registrar: esquecimento / pet melhorou / preço / outro hospital / sem motivo.<br>
+          Padrão revela problema de processo.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 CHECKLIST -->
+  <section id="checklist">
+    <div class="section-label">Seção 10</div>
+    <h2>Checklist diário</h2>
+    <p>Marque cada item conforme fizer. Progresso salvo automaticamente no navegador.</p>
+
+    <div class="checklist-section" id="checklistContainer">
+
+      <div class="checklist-group" data-group="manha">
+        <div class="checklist-group-header">
+          <span>🌅</span>
+          <h3>Início do turno</h3>
+        </div>
+        <div class="checklist-items">
+          <div class="checklist-item" data-id="m1">
+            <input type="checkbox" id="m1">
+            <label for="m1">Verificar agenda do dia e identificar consultas sem confirmação</label>
+          </div>
+          <div class="checklist-item" data-id="m2">
+            <input type="checkbox" id="m2">
+            <label for="m2">Enviar lembretes 48h para agendamentos de depois de amanhã</label>
+          </div>
+          <div class="checklist-item" data-id="m3">
+            <input type="checkbox" id="m3">
+            <label for="m3">Verificar lista de espera e horários abertos</label>
+          </div>
+        </div>
+        <div class="checklist-progress">
+          <span class="progress-text-manha">0 de 3</span>
+          <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <div class="checklist-group" data-group="dia">
+        <div class="checklist-group-header">
+          <span>☀️</span>
+          <h3>Durante o dia</h3>
+        </div>
+        <div class="checklist-items">
+          <div class="checklist-item" data-id="d1">
+            <input type="checkbox" id="d1">
+            <label for="d1">Enviar confirmações 24h para agenda de amanhã</label>
+          </div>
+          <div class="checklist-item" data-id="d2">
+            <input type="checkbox" id="d2">
+            <label for="d2">Ligar para quem não respondeu confirmação em 4h</label>
+          </div>
+          <div class="checklist-item" data-id="d3">
+            <input type="checkbox" id="d3">
+            <label for="d3">Acionar lista de espera quando vaga abrir</label>
+          </div>
+        </div>
+        <div class="checklist-progress">
+          <span class="progress-text-dia">0 de 3</span>
+          <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <div class="checklist-group" data-group="tarde">
+        <div class="checklist-group-header">
+          <span>🌙</span>
+          <h3>Fim do turno</h3>
+        </div>
+        <div class="checklist-items">
+          <div class="checklist-item" data-id="t1">
+            <input type="checkbox" id="t1">
+            <label for="t1">Registrar no-shows do dia com motivo</label>
+          </div>
+          <div class="checklist-item" data-id="t2">
+            <input type="checkbox" id="t2">
+            <label for="t2">Reagendar imediatamente quem não compareceu (tentar)</label>
+          </div>
+          <div class="checklist-item" data-id="t3">
+            <input type="checkbox" id="t3">
+            <label for="t3">Atualizar etiquetas no WhatsApp</label>
+          </div>
+          <div class="checklist-item" data-id="t4">
+            <input type="checkbox" id="t4">
+            <label for="t4">Passar pendências de confirmação pro próximo turno</label>
+          </div>
+        </div>
+        <div class="checklist-progress">
+          <span class="progress-text-tarde">0 de 4</span>
+          <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 11 FINAL -->
+  <section id="final">
+    <div class="section-label" style="color:rgba(255,255,255,.5)">Mensagem Final</div>
+    <h2>Confirmar não é incomodar — é cuidar</h2>
+    <div class="final-quote">
+      O hospital que confirma não está sendo chato. Está demonstrando que se importa com o pet e com o tempo do tutor.
+    </div>
+    <p class="final-sub">
+      Confirmação ativa é cuidado, não cobrança. Cada mensagem enviada é uma prova de que o São Bernardo se importa — antes mesmo da consulta começar.
+    </p>
+    <p class="final-sub" style="margin-top:16px;">
+      Quando a recepção confirma com capricho, o veterinário tem agenda cheia, o hospital tem receita e o tutor tem confiança. Todos ganham.
+    </p>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <span>Hospital Veterinário São Bernardo · Treinamento 2 de 8 · Sigma Assessoria · 2026</span>
+    <a href="https://manual-comercial-hvsb.vercel.app/" style="color:rgba(255,255,255,.4); text-decoration:none; font-size:12px;" target="_blank">← Treinamento 1: Manual Comercial</a>
+  </footer>
+
+</div><!-- end .main -->
+
+<script>
+  // ──────────── SIDEBAR TOGGLE ────────────
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('show');
+  }
+
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('show');
+  }
+
+  // Close on nav link click (mobile)
+  document.querySelectorAll('.nav-menu a').forEach(link => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth <= 840) closeSidebar();
+    });
+  });
+
+  // ──────────── ACTIVE NAV ────────────
+  const navLinks = document.querySelectorAll('.nav-menu a');
+  const sections = document.querySelectorAll('section[id]');
+
+  function setActiveNav() {
+    let current = '';
+    const scrollPos = window.scrollY + 140;
+    sections.forEach(sec => {
+      if (scrollPos >= sec.offsetTop) current = sec.id;
+    });
+    navLinks.forEach(link => {
+      link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+    });
+  }
+
+  window.addEventListener('scroll', setActiveNav, { passive: true });
+  setActiveNav();
+
+  // ──────────── SCROLL ANIMATIONS ────────────
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('section').forEach(sec => observer.observe(sec));
+
+  // ──────────── CHECKLIST + LOCALSTORAGE ────────────
+  const STORAGE_KEY = 'hvsb-t2-checklist';
+
+  const groupConfig = {
+    manha: { ids: ['m1','m2','m3'], total: 3 },
+    dia:   { ids: ['d1','d2','d3'], total: 3 },
+    tarde: { ids: ['t1','t2','t3','t4'], total: 4 }
+  };
+
+  function loadChecklist() {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    Object.entries(groupConfig).forEach(([group, config]) => {
+      config.ids.forEach(id => {
+        const cb = document.getElementById(id);
+        const item = cb?.closest('.checklist-item');
+        if (cb && saved[id]) {
+          cb.checked = true;
+          item?.classList.add('checked');
+        }
+      });
+      updateGroupProgress(group);
+    });
+  }
+
+  function saveChecklist() {
+    const state = {};
+    Object.values(groupConfig).forEach(config => {
+      config.ids.forEach(id => {
+        state[id] = document.getElementById(id)?.checked || false;
+      });
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function updateGroupProgress(group) {
+    const config = groupConfig[group];
+    const checked = config.ids.filter(id => document.getElementById(id)?.checked).length;
+    const total = config.total;
+    const pct = (checked / total) * 100;
+
+    const groupEl = document.querySelector(`[data-group="${group}"]`);
+    if (!groupEl) return;
+
+    const fill = groupEl.querySelector('.progress-fill');
+    const text = groupEl.querySelector(`.progress-text-${group}`);
+    if (fill) fill.style.width = pct + '%';
+    if (text) text.textContent = `${checked} de ${total}`;
+  }
+
+  document.querySelectorAll('.checklist-item').forEach(item => {
+    const cb = item.querySelector('input[type="checkbox"]');
+    if (!cb) return;
+
+    item.addEventListener('click', (e) => {
+      if (e.target !== cb) cb.checked = !cb.checked;
+      item.classList.toggle('checked', cb.checked);
+
+      // Find group
+      const group = Object.keys(groupConfig).find(g => groupConfig[g].ids.includes(item.dataset.id));
+      if (group) updateGroupProgress(group);
+
+      saveChecklist();
+    });
+
+    cb.addEventListener('click', (e) => e.stopPropagation());
+  });
+
+  loadChecklist();
+</script>
+</body>
+</html>
